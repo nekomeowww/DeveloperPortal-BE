@@ -17,5 +17,9 @@
   "main": "app.js",
   "repository": "https://github.com/nekomeowww/DeveloperPortal-BE.git",
   "author": "Ayaka Neko <neko@ayaka.moe>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js --dev"
+  }
 }
