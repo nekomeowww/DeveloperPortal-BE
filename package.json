@@ -8,6 +8,7 @@
     "koa-router": "^9.1.0",
     "koa-session": "^6.0.0",
     "koa-static": "^5.0.0",
+    "log4js": "^6.3.0",
     "nedb": "^1.8.0"
   },
   "name": "developerportal-be",
