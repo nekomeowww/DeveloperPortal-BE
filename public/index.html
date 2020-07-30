@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      margin: 0 auto;
+      height: 100%;
+    }
+
+    a {
+      text-decoration: none;
+      color: #252525;
+      animation: textColor 10s ease infinite;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      font-family: Arial, Helvetica, sans-serif;
+      justify-content: center;
+      flex-direction: column;
+      background-color: #1d212b;
+    }
+
+    .main {
+      font-size: 2rem;
+      position: relative;
+      width: 700px;
+      height: 180px;
+      line-height: 180px;
+      text-align: center;
+      color: #252B37;
+      background-color: #151823;
+      animation: textColor 10s ease infinite;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    span {
+      line-height: 0;
+      margin-top: -40px;
+      font-size: 1rem;
+    }
+
+    @media screen and (max-width: 600px) {
+      span {
+        margin-top: -25px;
+        font-size: 0.8rem;
+      }
+    }
+
+    .main:after {
+      position: absolute;
+      content: "";
+      top: 5vw;
+      left: 0;
+      right: 0;
+      z-index: -1;
+      height: 100%;
+      width: 100%;
+      margin: 0 auto;
+      transform: scale(0.75);
+      -webkit-filter: blur(5vw);
+      -moz-filter: blur(5vw);
+      -ms-filter: blur(5vw);
+      filter: blur(5vw);
+      background: linear-gradient(270deg, #0fffc1, #7e0fff);
+      background-size: 200% 200%;
+      animation: animateGlow 10s ease infinite;
+    }
+
+    @keyframes animateGlow {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    @keyframes textColor {
+      0% {
+        color: #7e0fff;
+      }
+
+      50% {
+        color: #0fffc1;
+      }
+
+      100% {
+        color: #7e0fff;
+      }
+    }
+
+    .notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      position: fixed;
+      color: rgb(177, 177, 177);
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      animation-name: fadeInOpacity;
+      animation-iteration-count: 1;
+      animation-timing-function: ease;
+      animation-duration: 6s;
+    }
+
+    @keyframes fadeInOpacity {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .intro-btn {
+      margin-top: 2rem;
+      font-size: 1rem;
+      position: relative;
+      width: 180px;
+      height: 50px;
+      line-height: 45px;
+      text-align: center;
+      color: #252B37;
+      background-color: #151823;
+      animation: textColor 10s ease infinite;
+      border-radius: 10px;
+      text-decoration: none;
+      border: 2px solid;
+      outline: none;
+    }
+
+    .intro-btn:hover {
+      border: 2px solid;
+      background: linear-gradient(270deg, #0fffc310, #7f0fff1c);
+    }
+
+    .intro-btn:active {
+      transform: scale(0.9);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main">
+    Developer Portal API
+    <span>for <a href="https://matataki.io">Matataki.io</a></span>
+  </div>
+  <a href="https://github.com/Matataki-io/DeveloperPortal-BE"><button class="intro-btn" id="doc-btn" type="button">Documentation</button></a>
+  <div class="notice">When you seeing this, it means your instance is running now</div>
+</body>
+
+</html>
