@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "axios": "^0.19.2",
+    "crypto-js": "^4.0.0",
+    "koa": "^2.13.0",
+    "koa-body": "^4.2.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^9.1.0",
+    "koa-session": "^6.0.0",
+    "koa-static": "^5.0.0",
+    "nedb": "^1.8.0"
+  },
+  "name": "developerportal-be",
+  "version": "1.0.0",
+  "description": "Backend of Developer Portal of Matataki.io",
+  "main": "app.js",
+  "repository": "https://github.com/nekomeowww/DeveloperPortal-BE.git",
+  "author": "Ayaka Neko <neko@ayaka.moe>",
+  "license": "MIT"
+}
