@@ -105,3 +105,9 @@ dist
 
 # configuration file
 config.json
+
+# apitoken
+apitoken.json
+
+# data
+data/
