@@ -22,6 +22,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "node_modules/.bin/nodemon --harmony app.js --dev",
-    "test": "node app.js --test"
+    "test": "node app.js --test",
+    "conf": "node test/init.js"
   }
 }
