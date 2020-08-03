@@ -1,3 +1,13 @@
+// Init
+let inTest = false
+if (process.argv[2] === '--test') {
+    inTest = true
+    setTimeout(() => {
+        process.exitCode = 0
+        process.exit()
+    }, 5000)
+}
+
 // Dependencies
 const Koa = require('koa')
 const KoaStatic = require('koa-static')
@@ -9,11 +19,12 @@ const Log = require('./src/util/log')
 const Global = require('./src/util/global')
 const routers = require('./src/route/router')
 const Store = require('./src/store/store')
-const config = undefined
+let config = undefined
 try {
     config = require('./config.json')
 } 
 catch(e) {
+    Log.fatal(e)
     let err = new Error('请先根据 config.json.example 创建 config.json 文件')
     err.name = 'Configuration Error'
     throw err
@@ -69,3 +80,4 @@ app.use(KoaStatic('./public'))
 
 app.listen(config.port)
 Log.info("App 已经开始运行在 http://127.0.0.1:" + config.port)
+if (inTest) Log.info("App 运行正常，测试成功")

@@ -109,5 +109,6 @@ let uploadAppIcon = async (ctx, next) => {
 module.exports = {
     app,
     getAppIcon,
+    newApp,
     uploadAppIcon
 }

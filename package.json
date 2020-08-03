@@ -21,6 +21,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node app.js",
-    "dev": "node_modules/.bin/nodemon --harmony app.js --dev"
+    "dev": "node_modules/.bin/nodemon --harmony app.js --dev",
+    "test": "node app.js --test"
   }
 }
