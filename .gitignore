@@ -108,3 +108,6 @@ config.json
 
 # apitoken
 apitoken.json
+
+# data
+data/
