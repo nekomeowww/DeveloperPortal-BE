@@ -12,7 +12,8 @@ if (process.argv[2] === '--test') {
 const Koa = require('koa')
 const KoaStatic = require('koa-static')
 const KoaRouter = require('koa-router')
-const koaBody = require('koa-body');
+const koaBody = require('koa-body')
+const cors = require('@koa/cors')
 
 // Local Packages
 const Log = require('./src/util/log')
@@ -45,7 +46,7 @@ app.use(async (ctx, next) => {
 });
 
 app.use(async (ctx, next) => {
-    ctx.set("Access-Control-Allow-Origin", ctx.headers.origin);
+    ctx.set("Access-Control-Allow-Origin", ctx.headers['origin']);
     ctx.set("Access-Control-Allow-Credentials", true);
     ctx.set("Access-Control-Request-Method", "PUT,POST,GET,DELETE,OPTIONS");
     ctx.set(
