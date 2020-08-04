@@ -35,8 +35,8 @@ const login = async (ctx, next) => {
     let isFirst = await Store.user.isFirst(query.id)
     if (isFirst) {
         await Store.user.update({ key: "UserList" }, { $addToSet: { users: query.id } }, {})
-        await Store.user.insert({ key: "UserProfile", id: query.id, email: query.email, nickname: query.nickname, avatar: query.avatar })
-        await Store.user.insert({ key: "AppProfiles", id: query.id })
+        await Store.user.insert({ key: "UserProfile", id: parseInt(query.id), email: query.email, nickname: query.nickname, avatar: query.avatar })
+        await Store.user.insert({ key: "AppProfiles", id: parseInt(query.id), apps: [] })
         Log.debug("New user " + query.nickname + " logged in, user data written into database.")
         ctx.body = { message: "Welcome! New user " + query.nickname }
     }

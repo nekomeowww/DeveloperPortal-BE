@@ -8,7 +8,6 @@ const Hash = require('../util/hash')
 const Store = require('../store/store')
 
 let app = async (ctx, next) => {
-
     let query = ctx.request.query
     query = JSON.parse(JSON.stringify(query))
 
@@ -18,16 +17,70 @@ let app = async (ctx, next) => {
         return
     }
 
-    let app = await Store.user.findOne({ key: "AppProfile", id: query.id })
+    let app = await Store.user.findOne({ key: "AppProfiles", id: parseInt(query.id) })
     ctx.body = app
     await next()
 }
 
 let newApp = async (ctx, next) => {
     let body = ctx.request.body
-    body.code = 0
-    ctx.body = body
+    let isExist = await Store.user.findOne({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) })
+    let clientId = []
+    let clientSecret = ''
+    for (let i = 0; i < 15; i++) {
+        clientId.push(Math.floor(Math.random() * Math.floor(9)))
+    }
+    clientId = clientId.join('')
+    clientSecret = Hash.sha256(Date.now() + '').substring(0, 16)
+
+    if (!isExist) {
+
+        const appId = Hash.sha256(Date.now() + '').substring(0, 16)
+
+        await Store.user.insert({ key: "AppProfile", appId: appId, userId: parseInt(body.userId), detail: body.form, clientId: clientId, clientSecret: clientSecret })
+        await Store.user.update({ key: "AppProfiles", id: parseInt(body.userId) }, { $addToSet: { apps: appId } }, {})
+
+        Log.trace("Creating new app with information, id: " + appId)
+        ctx.body = { code: 0, message: 'success', appId: appId, body: body }
+    }
+    else {
+
+        let app = await Store.user.findOne({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) })
+
+        if (app.clientId === undefined) {
+            await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientId: clientId } }, {})
+            await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientSecret: clientSecret } }, {})
+        }
+
+        await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { detail: body.form } }, {})
+        await Store.user.update({ key: "AppProfiles", id: parseInt(body.userId) }, { $addToSet: { apps: body.appId } }, {})
+
+        Log.trace("Updating app information, id: " + body.appId)
+        ctx.body = { code: 1, message: "success", appId: body.appId, body: body }
+    }
+
     await next()
+}
+
+let getAppDetail = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
+    if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
+        await next()
+        return
+    }
+
+    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) })
+    ctx.body = app
+
 }
 
 let getAppIcon = async (ctx, next) => {
@@ -54,8 +107,8 @@ let getAppIcon = async (ctx, next) => {
         webp: 'image/webp',
     }
 
-    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: query.userId })
-    
+    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) })
+
     if (!app) {
         await next()
         return
@@ -81,28 +134,32 @@ let uploadAppIcon = async (ctx, next) => {
     if (!fs.existsSync(imgServeDir)) {
         fs.mkdirSync(imgServeDir)
     }
-    
+
     const file = ctx.request.files;
     const ext = file.image.name.split(".")[1]
-    const fileName = Hash.sha256(Date.now() + '').substring(0,10) + '.' + ext
+    const fileName = Hash.sha256(Date.now() + '').substring(0, 16) + '.' + ext
     const reader = fs.createReadStream(file.image.path);
     const stream = fs.createWriteStream('./data/img/' + fileName)
     reader.pipe(stream)
-    Log.trace('uploading %s -> %s', file.image.name, stream.path)
+    Log.trace('uploading ' + file.image.name + ' -> ' + stream.path)
 
-    let isExist = await Store.user.findOne({ key: "AppProfile", appid: ctx.params.id, userId: ctx.params.userId })
+    let isExist = await Store.user.findOne({ key: "AppProfile", appId: ctx.params.id, userId: parseInt(ctx.params.userId) })
     if (!isExist) {
-        await Store.user.insert({ key: "AppProfile", appId: ctx.params.id, userId: ctx.params.userId, img: fileName})
-        await Store.user.update({ key: "AppProfiles", id: ctx.params.userId }, { $addToSet: { apps: ctx.params.id } }, {})
-        Log.trace("Creating new app, id: " + ctx.params.id)
+        let appId = Hash.sha256(Date.now() + '').substring(0, 16)
+        await Store.user.insert({ key: "AppProfile", appId: appId, userId: parseInt(ctx.params.userId), img: fileName })
+        await Store.user.update({ key: "AppProfiles", id: parseInt(ctx.params.userId) }, { $addToSet: { apps: appId } }, {})
+
+        Log.trace("Creating new app, id: " + appId)
+        ctx.body = { code: 0, message: "success", img: "/" + fileName, appId: appId }
     }
     else {
-        await Store.user.update({ key: "AppProfile", appId: ctx.params.id, userId: ctx.params.userId}, { $set: { img: fileName } }, {})
-        await Store.user.update({ key: "AppProfiles", id: ctx.params.userId }, { $addToSet: { apps: ctx.params.id } }, {})
+        await Store.user.update({ key: "AppProfile", appId: ctx.params.id, userId: parseInt(ctx.params.userId) }, { $set: { img: fileName } }, {})
+        await Store.user.update({ key: "AppProfiles", id: parseInt(ctx.params.userId) }, { $addToSet: { apps: ctx.params.id } }, {})
+
         Log.trace("Updating app, id: " + ctx.params.id)
+        ctx.body = { code: 1, message: "success", img: "/" + fileName, appId: ctx.params.id }
     }
 
-    ctx.body = { code: 0, message: "success", img: "/" + fileName}
     await next
 }
 
@@ -110,5 +167,6 @@ module.exports = {
     app,
     getAppIcon,
     newApp,
+    getAppDetail,
     uploadAppIcon
 }
