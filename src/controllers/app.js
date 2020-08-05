@@ -37,7 +37,8 @@ let newApp = async (ctx, next) => {
 
         const appId = Hash.sha256(Date.now() + '').substring(0, 16)
 
-        await Store.user.insert({ key: "AppProfile", appId: appId, userId: parseInt(body.userId), detail: body.form, clientId: clientId, clientSecret: clientSecret })
+        await Store.user.insert({ key: "AppProfileSecret", appId: appId, clientId: clientId, clientSecret: clientSecret})
+        await Store.user.insert({ key: "AppProfile", appId: appId, userId: parseInt(body.userId), detail: body.form })
         await Store.user.update({ key: "AppProfiles", id: parseInt(body.userId) }, { $addToSet: { apps: appId } }, {})
 
         Log.trace("Creating new app with information, id: " + appId)
@@ -48,8 +49,8 @@ let newApp = async (ctx, next) => {
         let app = await Store.user.findOne({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) })
 
         if (app.clientId === undefined) {
-            await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientId: clientId } }, {})
-            await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientSecret: clientSecret } }, {})
+            await Store.user.update({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientId: clientId } }, {})
+            await Store.user.update({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientSecret: clientSecret } }, {})
         }
 
         await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { detail: body.form } }, {})
@@ -62,15 +63,9 @@ let newApp = async (ctx, next) => {
     await next()
 }
 
-let getAppDetail = async (ctx, next) => {
+let getAppSecret = async (ctx, next) => {
     let query = ctx.request.query
     query = JSON.parse(JSON.stringify(query))
-
-    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
-        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
-        await next()
-        return
-    }
 
     if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
         ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
@@ -78,7 +73,27 @@ let getAppDetail = async (ctx, next) => {
         return
     }
 
-    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) })
+    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
+    let app = await Store.user.findOne({ key: "AppProfileSecret", appId: query.appId })
+    ctx.body = app
+}
+
+let getAppDetail = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
+        await next()
+        return
+    }
+
+    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
     ctx.body = app
 
 }
@@ -168,5 +183,6 @@ module.exports = {
     getAppIcon,
     newApp,
     getAppDetail,
+    getAppSecret,
     uploadAppIcon
 }
