@@ -10,7 +10,7 @@ AppRouter.get("/", app)
 AppRouter.get("/detail", getAppDetail)
 AppRouter.get("/secret", getAppSecret)
 AppRouter.post("/new", newApp)
-AppRouter.get("remove", removeApp)
+AppRouter.get("/remove", removeApp)
 AppRouter.get("/appIcon", getAppIcon)
 
 module.exports = AppRouter

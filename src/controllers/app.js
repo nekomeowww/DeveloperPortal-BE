@@ -7,6 +7,7 @@ const Log = require('../util/log')
 const Hash = require('../util/hash')
 const Store = require('../store/store')
 const { user } = require('../store/store')
+const { parse } = require('path')
 
 let app = async (ctx, next) => {
     let query = ctx.request.query
@@ -78,9 +79,15 @@ let removeApp = async (ctx, next) => {
         return
     }
 
-    let app = await Store.user.fineOne({ key: "AppProfile", appId: query.appId, userId: query.userId })
+    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) })
     if (app) {
-        await Store.user.remove({ key: "AppProfile", appId: query.appId, userId: query.userId })
+        await Store.user.remove({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) }, {})
+        let appProfile = await Store.user.findOne({ key: "AppProfiles", id: parseInt(query.userId) })
+        Log.debug('before: ' + JSON.stringify(appProfile))
+        let apps = appProfile.apps.filter(id => id !== query.appId)
+        await Store.user.update({ key: "AppProfiles", id: parseInt(query.userId) }, { $set: { apps: apps } }, {})
+        appProfile = await Store.user.findOne({ key: "AppProfiles", id: query.userId })
+        Log.debug('after: ' + JSON.stringify(appProfile))        
         ctx.body = { code: 0, message: "success", appId: query.appId }
         await next()
     }
