@@ -86,7 +86,7 @@ let removeApp = async (ctx, next) => {
         Log.debug('before: ' + JSON.stringify(appProfile))
         let apps = appProfile.apps.filter(id => id !== query.appId)
         await Store.user.update({ key: "AppProfiles", id: parseInt(query.userId) }, { $set: { apps: apps } }, {})
-        appProfile = await Store.user.findOne({ key: "AppProfiles", id: query.userId })
+        appProfile = await Store.user.findOne({ key: "AppProfiles", id: parseInt(query.userId) })
         Log.debug('after: ' + JSON.stringify(appProfile))        
         ctx.body = { code: 0, message: "success", appId: query.appId }
         await next()
@@ -95,6 +95,11 @@ let removeApp = async (ctx, next) => {
         ctx.body = { code: 1, message: "nothing to remove", appId: query.appId}
         await next()
     }
+}
+
+let postAuthorize = async (ctx, next) => {
+    let body = ctx.request.body
+    Log.debug(body)
 }
 
 let getAppSecret = async (ctx, next) => {
@@ -215,6 +220,7 @@ let uploadAppIcon = async (ctx, next) => {
 
 module.exports = {
     app,
+    postAuthorize,
     getAppIcon,
     newApp,
     removeApp,
