@@ -37,7 +37,7 @@ let newApp = async (ctx, next) => {
 
         const appId = Hash.sha256(Date.now() + '').substring(0, 16)
 
-        await Store.user.insert({ key: "AppProfileSecret", appId: appId, clientId: clientId, clientSecret: clientSecret})
+        await Store.user.insert({ key: "AppProfileSecret", appId: appId, userId: parseInt(body.userId), clientId: clientId, clientSecret: clientSecret})
         await Store.user.insert({ key: "AppProfile", appId: appId, userId: parseInt(body.userId), detail: body.form })
         await Store.user.update({ key: "AppProfiles", id: parseInt(body.userId) }, { $addToSet: { apps: appId } }, {})
 
@@ -46,11 +46,9 @@ let newApp = async (ctx, next) => {
     }
     else {
 
-        let app = await Store.user.findOne({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) })
-
-        if (app.clientId === undefined) {
-            await Store.user.update({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientId: clientId } }, {})
-            await Store.user.update({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId) }, { $set: { clientSecret: clientSecret } }, {})
+        let app = await Store.user.findOne({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId) })
+        if (!app.clientId) {
+            await Store.user.insert({ key: "AppProfileSecret", appId: body.appId, userId: parseInt(body.userId), clientId: clientId, clientSecret: clientSecret })
         }
 
         await Store.user.update({ key: "AppProfile", appId: body.appId, userId: parseInt(body.userId) }, { $set: { detail: body.form } }, {})
