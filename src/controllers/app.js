@@ -6,6 +6,8 @@ const path = require('path')
 const Log = require('../util/log')
 const Hash = require('../util/hash')
 const Store = require('../store/store')
+const { user } = require('../store/store')
+const { parse } = require('path')
 
 let app = async (ctx, next) => {
     let query = ctx.request.query
@@ -61,6 +63,45 @@ let newApp = async (ctx, next) => {
     await next()
 }
 
+let removeApp = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
+        await next()
+        return
+    }
+
+    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
+    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) })
+    if (app) {
+        await Store.user.remove({ key: "AppProfile", appId: query.appId, userId: parseInt(query.userId) }, {})
+        let appProfile = await Store.user.findOne({ key: "AppProfiles", id: parseInt(query.userId) })
+        Log.debug('before: ' + JSON.stringify(appProfile))
+        let apps = appProfile.apps.filter(id => id !== query.appId)
+        await Store.user.update({ key: "AppProfiles", id: parseInt(query.userId) }, { $set: { apps: apps } }, {})
+        appProfile = await Store.user.findOne({ key: "AppProfiles", id: parseInt(query.userId) })
+        Log.debug('after: ' + JSON.stringify(appProfile))        
+        ctx.body = { code: 0, message: "success", appId: query.appId }
+        await next()
+    }
+    else {
+        ctx.body = { code: 1, message: "nothing to remove", appId: query.appId}
+        await next()
+    }
+}
+
+let postAuthorize = async (ctx, next) => {
+    let body = ctx.request.body
+    Log.debug(body)
+}
+
 let getAppSecret = async (ctx, next) => {
     let query = ctx.request.query
     query = JSON.parse(JSON.stringify(query))
@@ -79,6 +120,7 @@ let getAppSecret = async (ctx, next) => {
 
     let app = await Store.user.findOne({ key: "AppProfileSecret", appId: query.appId })
     ctx.body = app
+    await next()
 }
 
 let getAppDetail = async (ctx, next) => {
@@ -93,7 +135,7 @@ let getAppDetail = async (ctx, next) => {
 
     let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
     ctx.body = app
-
+    await next()
 }
 
 let getAppIcon = async (ctx, next) => {
@@ -178,8 +220,10 @@ let uploadAppIcon = async (ctx, next) => {
 
 module.exports = {
     app,
+    postAuthorize,
     getAppIcon,
     newApp,
+    removeApp,
     getAppDetail,
     getAppSecret,
     uploadAppIcon
