@@ -217,7 +217,13 @@ let getAppDetail = async (ctx, next) => {
         return
     }
 
+
     let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
+
+    let instance = await Store.user.findOne({ key: "InstanceProfile", appId: query.appId })
+    if (instance) app.detail.callback = instance.callback
+    await Store.user.remove({ key: "InstanceProfile", appId: query.appId }, {})
+    
     ctx.body = app
     await next()
 }
@@ -302,6 +308,22 @@ let uploadAppIcon = async (ctx, next) => {
     await next
 }
 
+let postOauth = async (ctx, next) => {
+    let body = ctx.request.body
+    Log.debug(body.clientId)
+    let appSecret = await Store.user.findOne({ key: "AppProfileSecret", clientId: body.clientId })
+    let appId = appSecret.appId
+    let app = await Store.user.findOne({ key: "AppProfile", appId: appId })
+    if (app) {
+        if (body.redirect_uri) await Store.user.insert({ key: "InstanceProfile", callback: body.redirect_uri, appId: appId, clientId: body.clientId })
+        ctx.body = { code: 0, message: "success" }
+        await next()
+    } else {
+        ctx.body = { code: 1, message: "no valid app found" }
+        await next()
+    }
+}
+
 module.exports = {
     app,
     postAuthorize,
@@ -313,5 +335,6 @@ module.exports = {
     removeApp,
     getAppDetail,
     getAppSecret,
-    uploadAppIcon
+    uploadAppIcon,
+    postOauth
 }
