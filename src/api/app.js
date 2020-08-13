@@ -2,11 +2,12 @@
 const KoaRouter = require('koa-router')
 
 // Local Package
-const { app, newApp, getAppDetail, getAppIcon, getAppSecret, removeApp, postAuthorize, postPermission, getPermission, getAuthorize } = require('../controllers/app')
+const { app, newApp, getAppDetail, getAppIcon, getAppSecret, removeApp, postAuthorize, postPermission, getPermission, getAuthorize, postOauth } = require('../controllers/app')
 
 const AppRouter = new KoaRouter
 
 AppRouter.get("/", app)
+AppRouter.post("/oauth", postOauth)
 AppRouter.post("/authorize", postAuthorize)
 AppRouter.get("/authorize", getAuthorize)
 AppRouter.post("/permission", postPermission)
