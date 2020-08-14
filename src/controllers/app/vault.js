@@ -41,6 +41,24 @@ let removeVault = async (ctx, next) => {
     let query = ctx.request.query
     query = JSON.parse(JSON.stringify(query))
 
+    if (query.id === undefined || query.id === "undefined" || query.id === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `id`" }
+        await next()
+        return
+    }
+
+    if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
+        await next()
+        return
+    }
+    
+    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
     let vault = await Store.user.findOne({ key: "Vault", id: query.id, appId: query.appId, userId: parseInt(query.userId) })
     let vaults = await Store.user.findOne({ key: "VaultProfiles", id: parseInt(query.userId) })
     if (vault && vaults.vaults.length !== 0) {
