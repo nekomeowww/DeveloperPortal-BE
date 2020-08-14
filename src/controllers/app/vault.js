@@ -59,6 +59,30 @@ let removeVault = async (ctx, next) => {
 let updateVault = async (ctx, next) => {
     let body = ctx.request.body
 
+    if (body.vaultId === undefined || body.vaultId === "undefined" || body.vaultId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `vaultId`" }
+        await next()
+        return
+    }
+
+    if (body.appId === undefined || body.appId === "undefined" || body.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `vaultId`" }
+        await next()
+        return
+    }
+
+    if (body.userId === undefined || body.userId === "undefined" || body.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
+    if (body.form === undefined || body.form === "undefined" || body.form === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `vaultId`" }
+        await next()
+        return
+    }
+
     let vault = await Store.user.findOne({ key: "Vault", id: body.vaultId, appId: body.appId, userId: parseInt(body.userId) })
     if (vault) {
         await Store.user.update({ key: "Vault", id: body.vaultId, appId: body.appId, userId: parseInt(body.userId) }, { $set: { name: body.form.name } }, {})
