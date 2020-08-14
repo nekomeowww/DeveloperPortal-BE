@@ -84,7 +84,6 @@ let getVault = async (ctx, next) => {
     query = JSON.parse(JSON.stringify(query))
 
     let vault = await Store.user.findOne({ key: "Vault", id: query.id, appId: query.appId, userId: parseInt(query.userId) })
-    vault.value = ''
     ctx.body = vault
     await next()
 }
