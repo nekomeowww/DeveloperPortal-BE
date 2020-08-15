@@ -6,12 +6,6 @@ const Store = require('../../store/store')
 let addVault = async (ctx, next) => {
     let body = ctx.request.body
 
-    if (body.vaultId === undefined || body.vaultId === "undefined" || body.vaultId === "null") {
-        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `vaultId`" }
-        await next()
-        return
-    }
-
     if (body.appId === undefined || body.appId === "undefined" || body.appId === "null") {
         ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `vaultId`" }
         await next()
@@ -168,8 +162,42 @@ let getVault = async (ctx, next) => {
     }
 
     let vault = await Store.user.findOne({ key: "Vault", id: query.id, appId: query.appId, userId: parseInt(query.userId) })
+    vault.value = ''
     ctx.body = vault
     await next()
+}
+
+let getVaultbyName = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.clientId === undefined || query.clientId === "undefined" || query.clientId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `clientId`" }
+        await next()
+        return
+    }
+
+    if (query.clientSecret === undefined || query.clientSecret === "undefined" || query.clientSecret === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `clientSecret`" }
+        await next()
+        return
+    }
+
+    if (query.name === undefined || query.name === "undefined" || query.name === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `name`" }
+        await next()
+        return
+    }
+
+    let vault = await Store.user.findOne({ key: "Vault", clientId: query.clientId, clientSecret: query.clientSecret, name: query.name })
+    if (vault) {
+        let res = { code: 0, messsage: 'success', name: vault.name, value: vault.value }
+        ctx.body = res
+        await next()
+    }
+    else {
+        ctx.body = { code: 2, message: 'vault is invalid, it appears to be not exist or clientId and clientSecret incorrect' }
+    }
 }
 
 module.exports = {
@@ -177,5 +205,6 @@ module.exports = {
     removeVault,
     updateVault,
     getVaultList,
-    getVault
+    getVault,
+    getVaultbyName
 }

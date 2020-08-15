@@ -5,7 +5,7 @@ const KoaRouter = require('koa-router')
 const { app, newApp, removeApp, getAppDetail, getAppIcon, getAppSecret, postOauth } = require('../controllers/app')
 const { getPermission, postPermission } = require('../controllers/app/permission')
 const { getAuthorize, postAuthorize } = require('../controllers/app/authorize')
-const { addVault, removeVault, getVaultList, getVault, updateVault } = require('../controllers/app/vault')
+const { addVault, removeVault, getVaultList, getVault, updateVault, getVaultbyName } = require('../controllers/app/vault')
 
 const AppRouter = new KoaRouter()
 
@@ -33,6 +33,7 @@ AppRouter.get("/removevault", removeVault)
 // Vault Info get related
 AppRouter.get("/vaultlist", getVaultList)
 AppRouter.get("/vault", getVault)
+AppRouter.get("/vaultbyname", getVaultbyName)
 // Update Vault
 AppRouter.post("/updatevault", updateVault)
 
