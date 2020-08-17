@@ -116,7 +116,7 @@ let getAppSecret = async (ctx, next) => {
     await next()
 }
 
-let getAppDetail = async (ctx, next) => {
+let resetSecret = async (ctx, next) => {
     let query = ctx.request.query
     query = JSON.parse(JSON.stringify(query))
 
@@ -126,6 +126,33 @@ let getAppDetail = async (ctx, next) => {
         return
     }
 
+    if (query.clientId === undefined || query.clientId === "undefined" || query.clientId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `clientId`" }
+        await next()
+        return
+    }
+
+    let clientSecret = Hash.sha256(Date.now() + '').substring(0, 16)
+    let appSecret = await Store.user.findOne({ key: "AppProfileSecret", appId: query.appId, clientId: query.clientId })
+    if (appSecret) {
+        await Store.user.update({ key: "AppProfileSecret", appId: query.appId, clientId: query.clientId }, { $set: { clientSecret: clientSecret } }, {})
+        let newSecret = await Store.user.findOne({ key: "AppProfileSecret", appId: query.appId, clientId: query.clientId, clientSecret: clientSecret })
+        ctx.body = { code: 0, message: 'success', clientSecret: newSecret.clientSecret }
+    }
+    else {
+        ctx.body = { code: 2, message: 'clientId, clientSecret, or appId invalid' }
+    }
+}
+
+let getAppDetail = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.appId === undefined || query.appId === "undefined" || query.appId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `appId`" }
+        await next()
+        return
+    }
 
     let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
 
@@ -224,7 +251,7 @@ let postOauth = async (ctx, next) => {
     let appId = appSecret.appId
     let app = await Store.user.findOne({ key: "AppProfile", appId: appId })
     if (app) {
-        if (body.redirect_uri) await Store.user.insert({ key: "InstanceProfile", callback: body.redirect_uri, appId: appId, clientId: body.clientId })
+        if (body.redirect_uri) await Store.user.insert({ key: "InstanceProfile", callback: body.redirect_uri, appId: appId, clientId: body.clientId, clientSecret: appSecret.clientSecret })
         ctx.body = { code: 0, message: "success" }
         await next()
     } else {
@@ -240,6 +267,7 @@ module.exports = {
     removeApp,
     getAppDetail,
     getAppSecret,
+    resetSecret,
     uploadAppIcon,
     postOauth
 }
