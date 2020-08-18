@@ -38,6 +38,7 @@ const login = async (ctx, next) => {
         await Store.user.insert({ key: "UserProfile", id: parseInt(query.id), email: query.email, nickname: query.nickname, avatar: query.avatar })
         await Store.user.insert({ key: "AppProfiles", id: parseInt(query.id), apps: [] })
         await Store.user.insert({ key: "VaultProfiles", id: parseInt(query.id), vaults: [] })
+        await Store.user.insert({ key: "TeamProfiles", id: parseInt(query.id), teams: [] })
         Log.debug("New user " + query.nickname + " logged in, user data written into database.")
         ctx.body = { message: "Welcome! New user " + query.nickname }
     }
@@ -46,6 +47,11 @@ const login = async (ctx, next) => {
         if (!hasVaultProfiles) {
             Log.info("Breaking change happened at this version, creating database for user")
             await Store.user.insert({ key: "VaultProfiles", id: parseInt(query.id), vaults: [] })
+        }
+        let hasTeamProfiles = await Store.user.findOne({ key: "TeamProfiles", id: parseInt(query.id) })
+        if (!hasTeamProfiles) {
+            Log.info("Breaking change happened at this version, creating database for user")
+            await Store.user.insert({ key: "TeamProfiles", id: parseInt(query.id), teams: [] })
         }
         ctx.body = { message: "Welcome back! " + query.nickname }
         Log.debug('Existing user ' + query.nickname + ' logged in.')
