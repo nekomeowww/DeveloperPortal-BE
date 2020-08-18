@@ -203,9 +203,6 @@ let getAppIcon = async (ctx, next) => {
 }
 
 let uploadAppIcon = async (ctx, next) => {
-    let query = ctx.request.query
-    query = JSON.parse(JSON.stringify(query))
-
     let dataDir = path.resolve("./data")
     if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir)
