@@ -1,4 +1,5 @@
 // Local Packages
+const Log = require('../util/log')
 const Store = require('../store/store')
 
 let info = async (ctx, next) => {
@@ -12,9 +13,35 @@ let info = async (ctx, next) => {
         return
     }
 
-    let user = await Store.user.findOne({ key: "UserProfile", id: query.id })
+    let user = await Store.user.findOne({ key: "UserProfile", id: parseInt(query.id) })
     ctx.body = user
     await next()
 }
 
-module.exports = info
+let allUser = async (ctx, next) => {
+    let userProfiles = await Store.user.find({ key: "UserProfile" })
+    userProfiles.forEach(async user => {
+        await Store.user.update({ key: "UserList" }, { $addToSet: { users: user.id } }, {})
+    })
+    let allusers = await Store.user.findOne({ key: "UserList" })
+
+    let userInfo = []
+
+    for (let i = 0; i < allusers.users.length; i++) {
+        Store.user.findOne({ key: "UserProfile", id: parseInt(allusers.users[i]) }).then(res => {
+            userInfo.push(res)
+        })
+    }
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve()
+            ctx.body = { code: 0, users: userInfo, message: 'success' }
+            return next()
+        }, 4000)
+    })
+}
+module.exports = {
+    info,
+    allUser
+}
+

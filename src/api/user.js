@@ -2,7 +2,7 @@
 const KoaRouter = require('koa-router')
 
 // Local Dependencies
-const info = require('../controllers/info')
+const { info, allUser } = require('../controllers/info')
 const getAvatar = require('../controllers/avatar')
 const { app, uploadAppIcon } = require('../controllers/app')
 const { team, uploadTeamIcon } = require('../controllers/team')
@@ -12,6 +12,7 @@ const { uploadTeamAppIcon } = require('../controllers/team/app')
 let user = new KoaRouter()
 
 user.get("/info", info)
+user.get("/all", allUser)
 user.get("/avatar", getAvatar)
 user.get("/app", app)
 user.get("/team", team),

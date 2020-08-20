@@ -38,6 +38,35 @@ app.use(koaBody({ multipart: true }));
 
 Global.Add('config', config)
 
+// Init
+let initNotifyArray = () => {
+    return new Promise((resolve, reject) => {
+        Store.mainDb.find({ key: "Notify" }, (err, doc) => {
+            if (err) Log.fatal(err)
+            if (doc.length === 0) {
+                Log.info("First run, init database for notifications")
+                Store.main.insert({ key: "Notify", notifications: new Array() })
+            }
+        })
+    })
+}
+// init users array
+let initUserArray = () => {
+    return new Promise((resolve, reject) => {
+        Store.userDb.find({ key: "UserList" }, (err, doc) => {
+            if (err) Log.fatal(err)
+            if (doc.length === 0) {
+                Log.info("First run, init database for users")
+                Store.user.insert({ key: "UserList", users: new Array() })
+            }
+            resolve(true)
+        })
+    })
+}
+
+initNotifyArray()
+initUserArray()
+
 // to Log
 app.use(async (ctx, next) => {
     await next();
