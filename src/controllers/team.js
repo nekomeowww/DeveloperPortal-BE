@@ -30,8 +30,8 @@ let newTeam = async (ctx, next) => {
 
         const teamId = Hash.sha256(Date.now() + '').substring(0, 16)
 
-        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(body.userId), detail: body.form })
-        await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [] })
+        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(body.userId), detail: body.form, admins: [], users: [] })
+        await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [], admins: [] })
         await Store.user.update({ key: "TeamProfiles", id: parseInt(body.userId) }, { $addToSet: { teams: teamId } }, {})
 
         Log.trace("Creating new team with information, id: " + teamId)
@@ -159,8 +159,8 @@ let uploadTeamIcon = async (ctx, next) => {
     let isExist = await Store.user.findOne({ key: "TeamProfile", teamId: ctx.params.id, userId: parseInt(ctx.params.userId) })
     if (!isExist) {
         let teamId = Hash.sha256(Date.now() + '').substring(0, 16)
-        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(ctx.params.userId), img: fileName })
-        await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [] })
+        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(ctx.params.userId), img: fileName, admins: [], users: [] })
+        await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [], admins: [] })
         await Store.user.update({ key: "TeamProfiles", id: parseInt(ctx.params.userId) }, { $addToSet: { teams: teamId } }, {})
 
         Log.trace("Creating new team, id: " + teamId)
