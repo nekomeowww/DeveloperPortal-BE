@@ -39,13 +39,14 @@ let invite = async (ctx, next) => {
         notifyGlobalId: Hash.sha256(notifyId + "").substring(0,8),
         notifyId: notifyId,
         userId: src.id,
+        teamId: query.teamId,
         title: src.nickname,
         body: src.nickname + "邀请你加入 " + team.detail.name,
         proceed: false
     }
 
     await Store.main.insert({ key: "Notify" }, { $push: notifyObject })
-    await Store.user.update({ key: "NotifyProfile", id: user.id }, { $push: { notifications: notifyObject } }, {})
+    await Store.user.update({ key: "NotifyProfile", id: user.id }, { $addToSet: { notifications: notifyObject } }, {})
 
     ctx.body = notifyObject
     await next()
@@ -93,7 +94,8 @@ let inviteUpdate = async (ctx, next) => {
 }
 
 async function accept(query) {
-    await Store.user.update({ key: "TeamProfile", teamId: query.teamId }, { $addToSet: { users: parseInt(query.inviteId) } }, {})
+    await Store.user.update({ key: "TeamProfile", teamId: query.teamId }, { $addToSet: { users: parseInt(query.id) } }, {})
+    await Store.user.update({ key: "TeamProfiles", id: parseInt(query.id) }, { $addToSet: { teams: query.teamId } }, {})
     let res = await Store.user.findOne({ key: "NotifyProfile", id: parseInt(query.id) })
     let notifications = res.notifications.filter(e => e.notifyId !== parseInt(query.notifyId))
     await Store.user.update({ key: "NotifyProfile", id: query.id }, { $set: { notifications: notifications }}, {})
