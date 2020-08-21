@@ -30,7 +30,7 @@ let newTeam = async (ctx, next) => {
 
         const teamId = Hash.sha256(Date.now() + '').substring(0, 16)
 
-        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(body.userId), detail: body.form, admins: [], users: [] })
+        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(body.userId), detail: body.form, admins: [parseInt(ctx.params.userId)], users: [] })
         await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [], admins: [] })
         await Store.user.update({ key: "TeamProfiles", id: parseInt(body.userId) }, { $addToSet: { teams: teamId } }, {})
 
@@ -136,6 +136,38 @@ let getTeamIcon = async (ctx, next) => {
     await next()
 }
 
+let quitTeam = async (ctx, next) => {
+    let query = ctx.request.query
+    query = JSON.parse(JSON.stringify(query))
+
+    if (query.userId === undefined || query.userId === "undefined" || query.userId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `userId`" }
+        await next()
+        return
+    }
+
+    if (query.teamId === undefined || query.teamId === "undefined" || query.teamId === "null") {
+        ctx.body = { status: "failed", message: "Invalid Request, Missing value on required field `teamId`" }
+        await next()
+        return
+    }
+
+    let team = await Store.user.findOne({ key: "TeamProfile", teamId: query.teamId })
+    let userTeamProfile = await Store.user.findOne({ key: "TeamProfiles", id: parseInt(query.userId) })
+    let newTeamProfiles = userTeamProfile.teams.filter(id => id !== query.teamId)
+    Log.debug(newTeamProfiles)
+    let newTeamUsers = team.users.filter(id => id !== parseInt(query.userId))
+    let newTeamAdmin = team.admins.filter(id => id !== parseInt(query.userId))
+
+    await Store.user.update({ key: "TeamProfiles", id: parseInt(query.userId) }, { $set: { teams: newTeamProfiles } }, {})
+    newTeamProfiles = await Store.user.findOne({ key: "TeamProfiles", id: parseInt(query.userId) })
+    Log.debug(newTeamProfiles)
+    await Store.user.update({ key: "TeamProfile", teamId: query.teamId }, { $set: { users: newTeamUsers }}, {})
+    await Store.user.update({ key: "TeamProfile", teamId: query.teamId }, { $set: { admins: newTeamAdmin } }, {})
+
+    ctx.body = { code: 0, message: 'success' }
+}
+
 let uploadTeamIcon = async (ctx, next) => {
     console.log('on team upload')
     let dataDir = path.resolve("./data")
@@ -159,7 +191,7 @@ let uploadTeamIcon = async (ctx, next) => {
     let isExist = await Store.user.findOne({ key: "TeamProfile", teamId: ctx.params.id, userId: parseInt(ctx.params.userId) })
     if (!isExist) {
         let teamId = Hash.sha256(Date.now() + '').substring(0, 16)
-        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(ctx.params.userId), img: fileName, admins: [], users: [] })
+        await Store.user.insert({ key: "TeamProfile", teamId: teamId, userId: parseInt(ctx.params.userId), img: fileName, admins: [parseInt(ctx.params.userId)], users: [] })
         await Store.user.insert({ key: "TeamAppProfiles", id: teamId, apps: [], users: [], admins: [] })
         await Store.user.update({ key: "TeamProfiles", id: parseInt(ctx.params.userId) }, { $addToSet: { teams: teamId } }, {})
 
@@ -183,5 +215,6 @@ module.exports = {
     removeTeam,
     getTeamDetail,
     getTeamIcon,
-    uploadTeamIcon
+    uploadTeamIcon,
+    quitTeam
 }
