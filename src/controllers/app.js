@@ -267,25 +267,26 @@ let postOauth = async (ctx, next) => {
     let appId = appSecret.appId
     let app = await Store.user.findOne({ key: "AppProfile", appId: appId })
     if (app) {
+        let callback = app.detail.callback
         if (!/https?:\/\//.test(app.detail.callback)) {
-            let callback = 'https://' + app.detail.callback
-            let url = new URL(callback)
-            if (body.redirect_uri) {
-                let newCallback = body.redirect_uri
-                if (!/https?:\/\//.test(body.redirect_uri)) {
-                    newCallback = 'https://' + body.redirect_uri
-                }
-                let newUrl = new URL(newCallback)
+            callback = 'https://' + app.detail.callback
+        }
+        let url = new URL(callback)
+        if (body.redirect_uri) {
+            let newCallback = body.redirect_uri
+            if (!/https?:\/\//.test(body.redirect_uri)) {
+                newCallback = 'https://' + body.redirect_uri
+            }
+            let newUrl = new URL(newCallback)
 
-                if (url.hostname === newUrl.hostname) {
-                    await Store.user.insert({ key: "InstanceProfile", callback: body.redirect_uri, appId: appId, clientId: body.clientId, clientSecret: appSecret.clientSecret })
-                    ctx.body = { code: 0, message: "success" }
-                    await next()
-                }
-                else {
-                    ctx.body = { code: 2, message: "Failed with hostname mismatch, redirect to cross site is permitted."}
-                    await next()
-                }
+            if (url.hostname === newUrl.hostname) {
+                await Store.user.insert({ key: "InstanceProfile", callback: body.redirect_uri, appId: appId, clientId: body.clientId, clientSecret: appSecret.clientSecret })
+                ctx.body = { code: 0, message: "success" }
+                await next()
+            }
+            else {
+                ctx.body = { code: 2, message: "Failed with hostname mismatch, redirect to cross site is permitted."}
+                await next()
             }
         }
     } else {
