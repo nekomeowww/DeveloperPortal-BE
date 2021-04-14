@@ -159,8 +159,8 @@ let getAppBasic = async (ctx, next) => {
     }
 
     let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
+    if (!app) app = await Store.user.findOne({ key: "TeamAppProfile", appId: query.appId })
     ctx.body = app
-    await next()
 }
 
 let getAppDetail = async (ctx, next) => {
@@ -174,13 +174,19 @@ let getAppDetail = async (ctx, next) => {
     }
 
     let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
+    if (!app) app = await Store.user.findOne({ key: "TeamAppProfile", appId: query.appId })
 
     let instance = await Store.user.findOne({ key: "InstanceProfile", appId: query.appId })
-    if (instance) app.detail.callback = instance.callback
-    await Store.user.remove({ key: "InstanceProfile", appId: query.appId }, {})
+    if (!instance) {
+        instance = await Store.user.findOne({ key: "TeamInstanceProfile", appId: query.appId })
+        if (instance) app.detail.callback = instance.callback
+        await Store.user.remove({ key: "TeamInstanceProfile", appId: query.appId }, {})
+    } else {
+        if (instance) app.detail.callback = instance.callback
+        await Store.user.remove({ key: "InstanceProfile", appId: query.appId }, {})
+    }
 
     ctx.body = app
-    await next()
 }
 
 let getAppIcon = async (ctx, next) => {
@@ -218,7 +224,6 @@ let getAppIcon = async (ctx, next) => {
 
     ctx.type = types[ext]
     ctx.body = fs.createReadStream('./data/img/' + app.img)
-    await next()
 }
 
 let uploadAppIcon = async (ctx, next) => {
