@@ -38,7 +38,7 @@ let getPermission = async (ctx, next) => {
         return
     }
 
-    let app = await Store.user.findOne({ key: "AppProfile", appId: query.appId })
+    let app = await Store.user.findOne({ "$or": [{key: "AppProfile"}, {key: "TeamAppProfile"}], appId: query.appId })
     if (app) {
         ctx.body = { code: 0, permission: app.permission }
         await next
